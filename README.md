@@ -107,7 +107,25 @@ python manage.py runserver
 
 Backend runs at **http://localhost:8000**
 
-### 4. Create demo users
+### 4. Create users
+
+**How roles work:** The app checks `is_superuser` on the Django user account.
+
+- **Super Admin** (`is_superuser=True`) — full access: delete products, categories, stock report, Django admin
+- **Staff** (regular user, `is_superuser=False`) — dashboard, products, stock; no delete, categories, or stock report
+
+Any account created with `createsuperuser` is a **Super Admin** with the same permissions as `admin` below.
+
+#### Option A — Django superuser (any username)
+
+```bash
+cd backend
+python manage.py createsuperuser
+```
+
+Follow the prompts (username, email, password). That user can sign in to the React app **and** Django admin at `/admin/` with full Super Admin access.
+
+#### Option B — Demo users (recommended for testing)
 
 In a new terminal (with venv activated):
 
@@ -128,10 +146,13 @@ User.objects.filter(username='staff').exists() or User.objects.create_user(
 print('Users ready')
 ```
 
-| Username | Password | Role |
-|----------|----------|------|
-| `admin` | `admin123` | Super Admin — full access |
-| `staff` | `staff123` | Staff — no delete, no stock report, no categories |
+| Username | Password | Role | Notes |
+|----------|----------|------|-------|
+| `admin` | `admin123` | Super Admin | `create_superuser` — full access |
+| `staff` | `staff123` | Staff | `create_user` — limited access |
+| *your choice* | *your password* | Super Admin | Any user from `createsuperuser` |
+
+> You can have **multiple Super Admins** — every `createsuperuser` account gets the same full access as `admin`.
 
 ### 5. Frontend setup
 
@@ -287,14 +308,17 @@ POST /api/stock/purchase/
 
 ## Role-Based Access
 
-| Action | Admin | Staff |
-|--------|-------|-------|
+**Super Admin** = Django `is_superuser=True` (includes `admin` and anyone created with `createsuperuser`).
+
+| Action | Super Admin | Staff |
+|--------|-------------|-------|
 | View dashboard, products, stock | Yes | Yes |
 | Create / edit products | Yes | Yes |
 | Delete products | Yes | No |
 | Categories page | Yes | No |
 | Stock report | Yes | No |
 | Purchase / sale stock | Yes | Yes |
+| Django admin (`/admin/`) | Yes | No |
 
 ---
 
