@@ -1,0 +1,31 @@
+/* Bootstrap in a lower layer so Tailwind utilities can override it */
+@layer bootstrap, theme, utilities;
+
+@import 'bootstrap/dist/css/bootstrap.min.css' layer(bootstrap);
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+body {
+  margin: 0;
+  background-color: #f8fafc;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+/* Login page: undo Bootstrap reboot on native form controls inside Tailwind forms */
+.login-page input,
+.login-page button {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+/* Kill Bootstrap link underlines inside the app shell */
+.app-shell a,
+.app-shell a:hover,
+.app-shell a:focus,
+.app-shell a:active {
+  text-decoration: none;
+}

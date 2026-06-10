@@ -1,0 +1,39 @@
+# Python / Django
+venv/
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Secrets — never commit
+.env
+backend/.env
+frontend/.env
+frontend/.env.development
+frontend/.env.local
+frontend/.env.production
+*.pem
+
+# Django runtime
+backend/logs/
+backend/media/
+db.sqlite3
+
+# Node / React
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.log
+
+# Spec / local notes (optional — remove if you want to include)
+.specstory/

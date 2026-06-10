@@ -1,0 +1,1157 @@
+openapi: 3.0.3
+info:
+  title: Product Inventory API
+  version: 1.0.0
+  description: REST API for Product Inventory & Stock Management System
+paths:
+  /api/health/:
+    get:
+      operationId: health_retrieve
+      summary: API health check
+      tags:
+      - System
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  app:
+                    type: string
+                  message:
+                    type: string
+          description: ''
+  /api/me/:
+    get:
+      operationId: me_retrieve
+      tags:
+      - me
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/products/:
+    get:
+      operationId: products_list
+      summary: List all products
+      parameters:
+      - name: ordering
+        required: false
+        in: query
+        description: Which field to use when ordering the results.
+        schema:
+          type: string
+      - name: page
+        required: false
+        in: query
+        description: A page number within the paginated result set.
+        schema:
+          type: integer
+      - name: page_size
+        required: false
+        in: query
+        description: Number of results to return per page.
+        schema:
+          type: integer
+      - name: search
+        required: false
+        in: query
+        description: A search term.
+        schema:
+          type: string
+      tags:
+      - Products
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedProductListList'
+          description: ''
+    post:
+      operationId: products_create
+      summary: Create product with variants
+      tags:
+      - Products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProductCreateRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductCreate'
+          description: ''
+  /api/products/{id}/:
+    get:
+      operationId: products_retrieve
+      summary: Retrieve product details
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this product.
+        required: true
+      tags:
+      - Products
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductDetail'
+          description: ''
+    put:
+      operationId: products_update
+      summary: Update product details
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this product.
+        required: true
+      tags:
+      - Products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ProductUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ProductUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductUpdate'
+          description: ''
+    patch:
+      operationId: products_partial_update
+      summary: Partially update product
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this product.
+        required: true
+      tags:
+      - Products
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedProductUpdateRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedProductUpdateRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedProductUpdateRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductUpdate'
+          description: ''
+    delete:
+      operationId: products_destroy
+      summary: Delete product (soft delete; use ?hard=true for permanent delete)
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this product.
+        required: true
+      tags:
+      - Products
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/products/{product_id}/subvariants/:
+    get:
+      operationId: products_subvariants_list
+      summary: List all sub-variants for a product
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Sub-Variants
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SubVariant'
+          description: ''
+  /api/products/{product_id}/variants/:
+    get:
+      operationId: products_variants_list
+      summary: List variants for a product
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Variants
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ProductVariant'
+          description: ''
+    post:
+      operationId: products_variants_create
+      summary: Add variant to product and regenerate sub-variants
+      parameters:
+      - in: path
+        name: product_id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Variants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VariantWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VariantWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VariantWriteRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductVariant'
+          description: ''
+  /api/stock/:
+    get:
+      operationId: stock_list
+      summary: Get current stock levels for all sub-variants
+      parameters:
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Page number
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Results per page
+      - in: query
+        name: product_id
+        schema:
+          type: string
+        description: Filter by product UUID
+      tags:
+      - Stock
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStockLevelList'
+          description: ''
+  /api/stock/purchase/:
+    post:
+      operationId: stock_purchase_create
+      summary: Add stock (purchase) for a sub-variant
+      tags:
+      - Stock
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockPurchaseRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockPurchaseRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockPurchaseRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockTransaction'
+          description: ''
+  /api/stock/report/:
+    get:
+      operationId: stock_report_list
+      summary: Stock transaction report (admin only)
+      parameters:
+      - in: query
+        name: end_date
+        schema:
+          type: string
+        description: Filter to date (YYYY-MM-DD)
+      - in: query
+        name: page
+        schema:
+          type: integer
+        description: Page number
+      - in: query
+        name: page_size
+        schema:
+          type: integer
+        description: Results per page
+      - in: query
+        name: product_id
+        schema:
+          type: string
+        description: Filter by product UUID
+      - in: query
+        name: start_date
+        schema:
+          type: string
+        description: Filter from date (YYYY-MM-DD)
+      - in: query
+        name: transaction_type
+        schema:
+          type: string
+          enum:
+          - PURCHASE
+          - SALE
+        description: Filter by transaction type
+      tags:
+      - Stock
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedStockTransactionList'
+          description: ''
+  /api/stock/sale/:
+    post:
+      operationId: stock_sale_create
+      summary: Remove stock (sale) for a sub-variant
+      tags:
+      - Stock
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockSaleRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/StockSaleRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/StockSaleRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockTransaction'
+          description: ''
+  /api/token/:
+    post:
+      operationId: token_create
+      description: |-
+        Takes a set of user credentials and returns an access and refresh JSON web
+        token pair to prove the authentication of those credentials.
+      tags:
+      - token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/CustomTokenObtainPairRequest'
+        required: true
+      responses:
+        '200':
+          description: No response body
+  /api/token/refresh/:
+    post:
+      operationId: token_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - token
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/variants/{id}/:
+    put:
+      operationId: variants_update
+      summary: Update variant and regenerate sub-variants
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Variants
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VariantWriteRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/VariantWriteRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/VariantWriteRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductVariant'
+          description: ''
+    delete:
+      operationId: variants_destroy
+      summary: Delete variant and cascade sub-variants
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        required: true
+      tags:
+      - Variants
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+components:
+  schemas:
+    CustomTokenObtainPairRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          writeOnly: true
+          minLength: 1
+        password:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - password
+      - username
+    PaginatedProductListList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductList'
+    PaginatedStockLevelList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockLevel'
+    PaginatedStockTransactionList:
+      type: object
+      required:
+      - count
+      - results
+      properties:
+        count:
+          type: integer
+          example: 123
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=4
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?page=2
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockTransaction'
+    PatchedProductUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        ProductName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        ProductCode:
+          type: string
+          minLength: 1
+          maxLength: 255
+        HSNCode:
+          type: string
+          nullable: true
+          maxLength: 255
+        ProductImage:
+          type: string
+          format: binary
+          nullable: true
+        Active:
+          type: boolean
+        IsFavourite:
+          type: boolean
+    ProductCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        ProductName:
+          type: string
+          maxLength: 255
+        ProductCode:
+          type: string
+          maxLength: 255
+        HSNCode:
+          type: string
+          nullable: true
+          maxLength: 255
+        ProductImage:
+          type: string
+          format: uri
+          nullable: true
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantInput'
+      required:
+      - ProductCode
+      - variants
+    ProductCreateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        ProductName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        ProductCode:
+          type: string
+          minLength: 1
+          maxLength: 255
+        HSNCode:
+          type: string
+          nullable: true
+          maxLength: 255
+        ProductImage:
+          type: string
+          format: binary
+          nullable: true
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantInputRequest'
+      required:
+      - ProductCode
+      - variants
+    ProductDetail:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        ProductID:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        ProductCode:
+          type: string
+          maxLength: 255
+        ProductName:
+          type: string
+          maxLength: 255
+        ProductImage:
+          type: string
+          format: uri
+          nullable: true
+        HSNCode:
+          type: string
+          nullable: true
+          maxLength: 255
+        TotalStock:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,8})?$
+          nullable: true
+        Active:
+          type: boolean
+        IsFavourite:
+          type: boolean
+        CreatedDate:
+          type: string
+          format: date-time
+          readOnly: true
+        UpdatedDate:
+          type: string
+          format: date-time
+          nullable: true
+        created_by:
+          type: string
+          readOnly: true
+        variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/ProductVariant'
+          readOnly: true
+        sub_variants:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubVariant'
+          readOnly: true
+      required:
+      - CreatedDate
+      - ProductCode
+      - ProductID
+      - ProductName
+      - created_by
+      - id
+      - sub_variants
+      - variants
+    ProductList:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        ProductID:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: -9223372036854775808
+          format: int64
+        ProductCode:
+          type: string
+          maxLength: 255
+        ProductName:
+          type: string
+          maxLength: 255
+        HSNCode:
+          type: string
+          nullable: true
+          maxLength: 255
+        TotalStock:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,8})?$
+          nullable: true
+        CreatedDate:
+          type: string
+          format: date-time
+          readOnly: true
+        Active:
+          type: boolean
+        status:
+          type: string
+          readOnly: true
+      required:
+      - CreatedDate
+      - ProductCode
+      - ProductID
+      - ProductName
+      - id
+      - status
+    ProductUpdate:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        ProductName:
+          type: string
+          maxLength: 255
+        ProductCode:
+          type: string
+          maxLength: 255
+        HSNCode:
+          type: string
+          nullable: true
+          maxLength: 255
+        ProductImage:
+          type: string
+          format: uri
+          nullable: true
+        Active:
+          type: boolean
+        IsFavourite:
+          type: boolean
+    ProductUpdateRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        ProductName:
+          type: string
+          minLength: 1
+          maxLength: 255
+        ProductCode:
+          type: string
+          minLength: 1
+          maxLength: 255
+        HSNCode:
+          type: string
+          nullable: true
+          maxLength: 255
+        ProductImage:
+          type: string
+          format: binary
+          nullable: true
+        Active:
+          type: boolean
+        IsFavourite:
+          type: boolean
+    ProductVariant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 255
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantOption'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - options
+    StockLevel:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        product_id:
+          type: string
+          format: uuid
+          readOnly: true
+        product_name:
+          type: string
+          readOnly: true
+        product_code:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 500
+        sku_code:
+          type: string
+          maxLength: 255
+        stock:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,8})?$
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantOption'
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - id
+      - name
+      - options
+      - product_code
+      - product_id
+      - product_name
+      - updated_at
+    StockPurchaseRequest:
+      type: object
+      properties:
+        sub_variant_id:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,8})?$
+        notes:
+          type: string
+          default: ''
+      required:
+      - quantity
+      - sub_variant_id
+    StockSaleRequest:
+      type: object
+      properties:
+        sub_variant_id:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,8})?$
+        notes:
+          type: string
+          default: ''
+      required:
+      - quantity
+      - sub_variant_id
+    StockTransaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        product_id:
+          type: string
+          format: uuid
+          readOnly: true
+        product_name:
+          type: string
+          readOnly: true
+        sub_variant:
+          type: string
+          format: uuid
+        sub_variant_name:
+          type: string
+          readOnly: true
+        transaction_type:
+          $ref: '#/components/schemas/TransactionTypeEnum'
+        quantity:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,8})?$
+        notes:
+          type: string
+        running_balance:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,8})?$
+        created_by:
+          type: integer
+          nullable: true
+        created_by_username:
+          type: string
+          readOnly: true
+      required:
+      - created_at
+      - created_by_username
+      - id
+      - product_id
+      - product_name
+      - quantity
+      - running_balance
+      - sub_variant
+      - sub_variant_name
+      - transaction_type
+    SubVariant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        product:
+          type: string
+          format: uuid
+        product_name:
+          type: string
+          readOnly: true
+        product_code:
+          type: string
+          readOnly: true
+        name:
+          type: string
+          maxLength: 500
+        sku_code:
+          type: string
+          maxLength: 255
+        stock:
+          type: string
+          format: decimal
+          pattern: ^-?\d{0,12}(?:\.\d{0,8})?$
+        options:
+          type: array
+          items:
+            $ref: '#/components/schemas/VariantOption'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - name
+      - options
+      - product
+      - product_code
+      - product_name
+      - updated_at
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+      required:
+      - access
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          writeOnly: true
+          minLength: 1
+      required:
+      - refresh
+    TransactionTypeEnum:
+      enum:
+      - PURCHASE
+      - SALE
+      type: string
+      description: |-
+        * `PURCHASE` - Purchase
+        * `SALE` - Sale
+    VariantInput:
+      type: object
+      properties:
+        name:
+          type: string
+          maxLength: 255
+        options:
+          type: array
+          items:
+            type: string
+            maxLength: 255
+      required:
+      - name
+      - options
+    VariantInputRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        options:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 255
+      required:
+      - name
+      - options
+    VariantOption:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        value:
+          type: string
+          maxLength: 255
+      required:
+      - id
+      - value
+    VariantWriteRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        options:
+          type: array
+          items:
+            type: string
+            minLength: 1
+            maxLength: 255
+      required:
+      - name
+      - options
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+tags:
+- name: Products
+  description: Product CRUD operations
+- name: Variants
+  description: Product variant management
+- name: Sub-Variants
+  description: Generated sub-variant combinations
+- name: Stock
+  description: Stock purchase, sale, levels, and reports
+- name: System
+  description: Health and system endpoints
